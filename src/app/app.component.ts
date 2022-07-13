@@ -52,6 +52,32 @@ export class AppComponent implements AfterViewInit {
     }
   }
 
+  geojson: any = {
+    "type": "FeatureCollection",
+    "features": [{
+        "type": "Feature",
+        "properties": {
+            "shape": "Polygon",
+            "name": "Unnamed Layer",
+            "category": "default"
+        },
+        "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+                [
+                    [105.687193, 20.884716],
+                    [105.675733, 20.881508],
+                    [105.676548, 20.874331],
+                    [105.692816, 20.875333],
+                    [105.695992, 20.881067],
+                    [105.687193, 20.884716]
+                ]
+            ]
+        },
+        "id": "2a3c2f5c-0336-4654-b327-e36d45d5150f"
+    }]
+}
+
   ngOnInit(): void {
     //Called after the constructor, initializing input properties, and the first call to ngOnChanges.
     //Add 'implements OnInit' to the class.
@@ -65,22 +91,57 @@ export class AppComponent implements AfterViewInit {
       [46.92, -121.92],
       [46.87, -121.8]
     ]).addTo(this.map);
+
+    var myStyle = {
+      "color": "#ff7800",
+      "weight": 5,
+      "opacity": 0.65,
+    };
+    const streets = L.geoJSON(this.geojson, {
+      style: myStyle
+    }).addTo(this.map);
+    streets.on('click', function(e) { 
+      e.layer.pm.disable();
+    });
+
     this.map.pm.addControls({
       positions: {
         draw: "topright",
         edit: "topleft"
       },
-      drawCircle: true
+      editMode: false,
+      drawCircle: true,
+      
     });
     this.map.pm.setLang("en", this.customTranslation, "vi");
     this.map.pm.setGlobalOptions({ pinning: false, snappable: true });
 
     this.map.on("pm:create", (e: any) => {
-      this.map.eachLayer(function (layer: any) {
-        if (layer instanceof L.Polygon) {
-        }
+      e.layer.on('click', () => { 
+        e.layer.pm.enable({
+          allowEditing: true
+        });
+      });
+      e.layer.on('pm:edit', (e2: any) => {
+        console.log(e2.layer.toGeoJSON());
       });
     });
+
+    this.map.on('pm:remove', (v: any) => {
+      console.log(v);
+      const collection: any = {
+        "type": "FeatureCollection",
+        features: []
+      };
+      this.map.eachLayer(function (layer: any) {
+        if (layer instanceof L.Polygon || layer instanceof L.Marker) {
+          var geojson: any = layer.toGeoJSON();
+          collection.features.push(geojson);
+        }
+        
+      });
+      console.log(collection);
+    })
   }
   private getCurrentPosition(): any {
     return new Observable((observer: Subscriber<any>) => {
@@ -147,3 +208,4 @@ export class AppComponent implements AfterViewInit {
     });
   }
 }
+
