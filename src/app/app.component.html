@@ -1,0 +1,31 @@
+<div
+  style="height: 100vh;"
+  leaflet
+  leafletDraw
+  [leafletOptions]="options"
+  (leafletMapReady)="onMapReady($event)"
+  [leafletDrawOptions]="drawOptions"
+  (leafletDrawCreated)="onDrawCreated($event)"
+  (leafletClick)="clickLeaf($event)"
+>
+  <div [leafletLayer]="drawnItems"></div>
+  >
+</div>
+<button
+  style="position: absolute; bottom: 0; z-index: 999999999999;"
+  (click)="startDraw()"
+>
+  start
+</button>
+<button
+  style="position: absolute; bottom: 0; right: 0; z-index: 999999999999;"
+  (click)="stopDraw()"
+>
+  stop
+</button>
+<button
+  style="position: absolute; bottom: 20px; right: -30; z-index: 999999999999;"
+  (click)="removeLastDot()"
+>
+  back
+</button>
