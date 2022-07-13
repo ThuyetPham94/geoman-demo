@@ -20,9 +20,11 @@
     "@angular/router": "^14.0.0",
     "@asymmetrik/ngx-leaflet": "^14.0.0",
     "@geoman-io/leaflet-geoman-free": "^2.13.0",
+    "@types/leaflet.gridlayer.googlemutant": "^0.4.6",
     "leaflet": "^1.8.0",
     "leaflet-draw": "^1.0.4",
     "leaflet-measure-path": "^1.5.0",
+    "leaflet.gridlayer.googlemutant": "^0.13.5",
     "rxjs": "~7.5.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.11.4"

@@ -3,10 +3,10 @@ import * as L from 'leaflet';
 import "@geoman-io/leaflet-geoman-free";
 import "leaflet-measure-path";
 import { Observable, Subscriber } from 'rxjs';
-import { environment } from '../environments/environment';
-
 import "@geoman-io/leaflet-geoman-free";
 import "leaflet-measure-path";
+import 'leaflet.gridlayer.googlemutant';
+import { environment } from 'src/environments/environment';
 
 @Component({
   selector: 'app-root',
@@ -193,6 +193,13 @@ export class AppComponent implements AfterViewInit {
       accessToken: environment.mapbox.accessToken,
     }).addTo(this.map);
 
+    L.gridLayer.googleMutant({
+      type: "hybrid",
+      styles: [
+        { featureType: "water", stylers: [{ color: "#444444" }] },
+      ],
+    })
+    .addTo(this.map);
 
     this.getCurrentPosition()
     .subscribe((position: any) => {
