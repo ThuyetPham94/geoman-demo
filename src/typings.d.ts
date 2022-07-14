@@ -1,4 +1,5 @@
-import { tileLayer } from 'leaflet';
+import { polygon, tileLayer } from 'leaflet';
+import * as geojson from 'geojson';
 
 declare module 'leaflet' {
   namespace tileLayer {
@@ -12,4 +13,12 @@ declare module 'leaflet' {
 
     export function bing(options: string|BingOptions): TileLayer;
   }
+
+  export class Polygon1<P = any> extends Polyline<geojson.Polygon | geojson.MultiPolygon, P> {
+    constructor(latlngs: LatLngExpression[] | LatLngExpression[][] | LatLngExpression[][][], options?: PolylineOptions);
+    showMeasurements() : this;
+    updateMeasurements(): this;
+  }
+
+  export function polygon(latlngs: LatLngExpression[] | LatLngExpression[][] | LatLngExpression[][][], options?: PolylineOptions): Polygon1
 }

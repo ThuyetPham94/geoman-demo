@@ -1,6 +1,13 @@
 #map {
-    height: 400px;
-    width: 100%;
-    max-width: 600px;
-  }
-  
+  height: 400px;
+  width: 100%;
+  max-width: 600px;
+}
+
+.text-below-marker {
+  min-width: 100px;
+  left: -50px;
+  text-align: center;
+  min-height: 1.2em;
+  border: 1px solid red;
+}

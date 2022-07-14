@@ -1,14 +1,15 @@
 import { AfterViewInit, Component, OnInit } from '@angular/core';
 import * as L from 'leaflet';
 import "@geoman-io/leaflet-geoman-free";
-import "leaflet-measure-path";
 import { Observable, Subscriber } from 'rxjs';
 import "@geoman-io/leaflet-geoman-free";
 import "leaflet-measure-path";
 import 'leaflet.gridlayer.googlemutant';
 import 'leaflet-bing-layer';
 import { environment } from 'src/environments/environment';
-
+import 'leaflet-geosearch';
+import { BingProvider, GeoSearchControl } from 'leaflet-geosearch';
+import { area, polygon } from '@turf/turf';
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
@@ -79,6 +80,8 @@ export class AppComponent implements AfterViewInit {
     }]
 }
 
+  // tooltip: any;
+  markerTooltip: any;
   ngOnInit(): void {
     //Called after the constructor, initializing input properties, and the first call to ngOnChanges.
     //Add 'implements OnInit' to the class.
@@ -87,11 +90,12 @@ export class AppComponent implements AfterViewInit {
   public ngAfterViewInit(): void {
     this.loadMap();
     this.initMarkers();
+    
     L.polygon([
       [46.8, -121.85],
       [46.92, -121.92],
       [46.87, -121.8]
-    ]).addTo(this.map);
+    ]).addTo(this.map).showMeasurements();
 
     var myStyle = {
       "color": "#ff7800",
@@ -110,7 +114,7 @@ export class AppComponent implements AfterViewInit {
         draw: "topright",
         edit: "topleft"
       },
-      editMode: false,
+      // editMode: false,
       drawCircle: true,
       
     });
@@ -124,7 +128,43 @@ export class AppComponent implements AfterViewInit {
         });
       });
       e.layer.on('pm:edit', (e2: any) => {
-        console.log(e2.layer.toGeoJSON());
+        // console.log(e2.layer.toGeoJSON());
+      });
+      if(e.shape === 'Polygon'){
+        e.layer.showMeasurements()
+
+     }
+    });
+
+    this.map.on('pm:drawstart', ({ workingLayer }: any) => {
+      workingLayer.on('pm:vertexadded', (e: any) => {
+        console.log(e, '----------------');
+        let coord: any[][][] = (e.layer as L.Polygon).toGeoJSON().geometry.coordinates;
+        this.caculate(this.map, coord)
+      });
+      workingLayer.on('pm:change', (e: any) => {
+        console.log(e);
+        
+        let latlng: any[][] = [];
+        e.latlngs.forEach((v: any) => {
+          latlng.push([v.lat, v.lng]);
+        });
+        latlng.push([(e.latlngs[0] as any).lat, (e.latlngs[0] as any).lng])
+        
+        console.log(e.latlngs.slice(-1));
+        
+        if (latlng.length >= 4) {
+          var poly = polygon([[...latlng]]);
+          var are = area(poly);
+          
+          if (this.markerTooltip) {
+            this.markerTooltip.setLatLng(new L.LatLng(e.latlngs.slice(-1)[0].lat, e.latlngs.slice(-1)[0].lng))
+            .bindTooltip("<h3>Diện tích: " + (are / 1000) + "</h3>").openTooltip()
+          } else {
+            this.markerTooltip = L.marker(new L.LatLng(e.latlngs.slice(-1)[0].lat, e.latlngs.slice(-1)[0].lng), {opacity: 0}).addTo(this.map);
+          }
+          // this.tooltip.setContent('hahahaha').updatePosition((e.latlngs[0] as any).lat, (e.latlngs[0] as any).lng)
+        }        
       });
     });
 
@@ -180,11 +220,11 @@ export class AppComponent implements AfterViewInit {
 
     L.marker([homeCoords.lat, homeCoords.lon], markerIcon)
       .addTo(this.map)
-      .bindPopup(popupInfo);
+      .bindPopup(popupInfo);    
   }
 
   private loadMap(): void {
-    this.map = L.map('map').setView([0, 0], 1);
+    this.map = L.map('map').setView([0, 0], 1);    
     // L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
     //   attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
     //   maxZoom: 18,
@@ -194,18 +234,35 @@ export class AppComponent implements AfterViewInit {
     //   accessToken: environment.mapbox.accessToken,
     // }).addTo(this.map);
 
-    L.gridLayer.googleMutant({
-      type: "hybrid",
-      styles: [
-        { featureType: "water", stylers: [{ color: "#444444" }] },
-      ],
-    })
-    .addTo(this.map);
+    // L.gridLayer.googleMutant({
+    //   type: "hybrid",
+    //   styles: [
+    //     { featureType: "water", stylers: [{ color: "#444444" }] },
+    //   ],
+    // })
+    // .addTo(this.map);
 
-    // L.tileLayer.bing({
-    //   bingMapsKey: 'AlWIllLtHCA1n7MVtgT_Vp2VlzhYzkpGPNOtT7UAMmPmHsFO4Vux0CnW_31Ws5Kt',
-    //   imagerySet:'RoadOnDemand'
-    // }).addTo(this.map)
+
+
+    L.tileLayer.bing({
+      bingMapsKey: 'AlWIllLtHCA1n7MVtgT_Vp2VlzhYzkpGPNOtT7UAMmPmHsFO4Vux0CnW_31Ws5Kt',
+      imagerySet:'RoadOnDemand'
+    }).addTo(this.map)
+
+    const provider = new BingProvider({
+      params: {
+        key: 'AlWIllLtHCA1n7MVtgT_Vp2VlzhYzkpGPNOtT7UAMmPmHsFO4Vux0CnW_31Ws5Kt',
+      },
+    });
+    const searchControl = new GeoSearchControl({
+      provider: provider,
+      style: 'bar',
+      autoComplete: true,
+      autoCompleteDelay: 250,
+      showMarker: true,
+    });
+
+    this.map.addControl(searchControl);
 
     this.getCurrentPosition()
     .subscribe((position: any) => {
@@ -220,19 +277,18 @@ export class AppComponent implements AfterViewInit {
       marker.addTo(this.map);
     });
   }
+
+  caculate(map: any, polygons: any[]) {
+    // polygons.forEach(poly => {
+    //   console.log(poly);
+      
+    //   var marker = L.marker([poly[1], poly[0]]); //opacity may be set to zero
+    //   marker.bindTooltip("My Label", {permanent: false, className: "text-below-marker" });
+    //   marker.addTo(map);
+
+    //   var bounds = map.getBounds().pad(0.25); // slightly out of screen
+      
+    // })
+  }
 }
-
-// declare module 'leaflet' {
-//   namespace tileLayer {
-//     interface BingOptions extends TileLayerOptions {
-//       bingMapsKey?: string;
-//       imagerySet?: 'Aerial'|'AerialWithLabels'|'AerialWithLabelsOnDemand'|'CanvasDark'|'CanvasLight'|'CanvasGray'|'Road'|
-//         'RoadOnDemand'|'OrdnanceSurvey';
-//       culture?: string;
-//       style?: string;
-//     }
-
-//     export function bing(options: string|BingOptions): TileLayer;
-//   }
-// }
 
