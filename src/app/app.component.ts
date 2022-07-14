@@ -6,6 +6,7 @@ import { Observable, Subscriber } from 'rxjs';
 import "@geoman-io/leaflet-geoman-free";
 import "leaflet-measure-path";
 import 'leaflet.gridlayer.googlemutant';
+import 'leaflet-bing-layer';
 import { environment } from 'src/environments/environment';
 
 @Component({
@@ -184,14 +185,14 @@ export class AppComponent implements AfterViewInit {
 
   private loadMap(): void {
     this.map = L.map('map').setView([0, 0], 1);
-    L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
-      attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
-      maxZoom: 18,
-      id: 'mapbox/streets-v11',
-      tileSize: 512,
-      zoomOffset: -1,
-      accessToken: environment.mapbox.accessToken,
-    }).addTo(this.map);
+    // L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
+    //   attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+    //   maxZoom: 18,
+    //   id: 'mapbox/streets-v11',
+    //   tileSize: 512,
+    //   zoomOffset: -1,
+    //   accessToken: environment.mapbox.accessToken,
+    // }).addTo(this.map);
 
     L.gridLayer.googleMutant({
       type: "hybrid",
@@ -200,6 +201,11 @@ export class AppComponent implements AfterViewInit {
       ],
     })
     .addTo(this.map);
+
+    // L.tileLayer.bing({
+    //   bingMapsKey: 'AlWIllLtHCA1n7MVtgT_Vp2VlzhYzkpGPNOtT7UAMmPmHsFO4Vux0CnW_31Ws5Kt',
+    //   imagerySet:'RoadOnDemand'
+    // }).addTo(this.map)
 
     this.getCurrentPosition()
     .subscribe((position: any) => {
@@ -215,4 +221,18 @@ export class AppComponent implements AfterViewInit {
     });
   }
 }
+
+// declare module 'leaflet' {
+//   namespace tileLayer {
+//     interface BingOptions extends TileLayerOptions {
+//       bingMapsKey?: string;
+//       imagerySet?: 'Aerial'|'AerialWithLabels'|'AerialWithLabelsOnDemand'|'CanvasDark'|'CanvasLight'|'CanvasGray'|'Road'|
+//         'RoadOnDemand'|'OrdnanceSurvey';
+//       culture?: string;
+//       style?: string;
+//     }
+
+//     export function bing(options: string|BingOptions): TileLayer;
+//   }
+// }
 
